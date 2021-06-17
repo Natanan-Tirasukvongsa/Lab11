@@ -841,15 +841,15 @@ void EEPROMWriteExample() {
 		static uint8_t data[4] = { 0xff, 0x00, 0x55, 0xaa };
 
 		//write memory
-		//Memaddress = ตำแหน่งภายใน eeprom ที่ต้องการเขียน  0x2C
+		//Memaddress = ตำแหน่งภายใน eeprom ที่ต้องการเขียน  0x20 //เลขที่ตัวเอง
 		//high & low byte = 16bits ตำแหน่งใน eeprom
-		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
+		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
  800079a:	2304      	movs	r3, #4
  800079c:	9301      	str	r3, [sp, #4]
  800079e:	4b09      	ldr	r3, [pc, #36]	; (80007c4 <EEPROMWriteExample+0x44>)
  80007a0:	9300      	str	r3, [sp, #0]
  80007a2:	2310      	movs	r3, #16
- 80007a4:	222c      	movs	r2, #44	; 0x2c
+ 80007a4:	2220      	movs	r2, #32
  80007a6:	21a0      	movs	r1, #160	; 0xa0
  80007a8:	4805      	ldr	r0, [pc, #20]	; (80007c0 <EEPROMWriteExample+0x40>)
  80007aa:	f000 ff93 	bl	80016d4 <HAL_I2C_Mem_Write_IT>
@@ -891,13 +891,13 @@ void EEPROMReadExample(uint8_t *Rdata, uint16_t len) {
  80007e6:	d10c      	bne.n	8000802 <EEPROMReadExample+0x3a>
 
 		//read
-		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x2c, I2C_MEMADD_SIZE_16BIT,
+		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
  80007e8:	887b      	ldrh	r3, [r7, #2]
  80007ea:	9301      	str	r3, [sp, #4]
  80007ec:	687b      	ldr	r3, [r7, #4]
  80007ee:	9300      	str	r3, [sp, #0]
  80007f0:	2310      	movs	r3, #16
- 80007f2:	222c      	movs	r2, #44	; 0x2c
+ 80007f2:	2220      	movs	r2, #32
  80007f4:	21a0      	movs	r1, #160	; 0xa0
  80007f6:	4806      	ldr	r0, [pc, #24]	; (8000810 <EEPROMReadExample+0x48>)
  80007f8:	f001 f81e 	bl	8001838 <HAL_I2C_Mem_Read_IT>
@@ -921,11 +921,11 @@ void IOExpenderInit() {
  8000814:	b580      	push	{r7, lr}
  8000816:	b084      	sub	sp, #16
  8000818:	af04      	add	r7, sp, #16
-	//polling
 	//อยู่ในรูปแบบ initial write
 	//ถูกเรียกครั้งแรกตอนเปิด controller
 	//เวลากดปุ่ม reset = Nrst จะดึงขานี้ลง หลังจากนั้นจะ reset ค่าทั้งหมดในนี้
 	//address 8 bit
+	//ตำแหน่ง IODIRA = 0x00
 	HAL_I2C_Mem_Write(&hi2c1, IOEXPD_ADDR, 0x00, I2C_MEMADD_SIZE_8BIT, Setting,
  800081a:	2364      	movs	r3, #100	; 0x64
  800081c:	9302      	str	r3, [sp, #8]
@@ -969,6 +969,7 @@ void IOExpenderReadPinA(uint8_t *Rdata) {
  800085a:	d10c      	bne.n	8000876 <IOExpenderReadPinA+0x36>
 		//read gpio A at 0x12
 		//เก็บใน Rdata
+		//ตำแหน่ง GPIOA = 0x12
 		HAL_I2C_Mem_Read_IT(&hi2c1, IOEXPD_ADDR, 0x12, I2C_MEMADD_SIZE_8BIT,
  800085c:	2301      	movs	r3, #1
  800085e:	9301      	str	r3, [sp, #4]

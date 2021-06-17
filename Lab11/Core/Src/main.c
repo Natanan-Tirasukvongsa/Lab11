@@ -304,9 +304,9 @@ void EEPROMWriteExample() {
 		static uint8_t data[4] = { 0xff, 0x00, 0x55, 0xaa };
 
 		//write memory
-		//Memaddress = ตำแหน่งภายใน eeprom ที่ต้องการเขียน  0x2C
+		//Memaddress = ตำแหน่งภายใน eeprom ที่ต้องการเขียน  0x20 //เลขที่ตัวเอง
 		//high & low byte = 16bits ตำแหน่งใน eeprom
-		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
+		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
 				data, 4);
 
 
@@ -318,21 +318,21 @@ void EEPROMReadExample(uint8_t *Rdata, uint16_t len) {
 	if (eepromExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 
 		//read
-		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x2c, I2C_MEMADD_SIZE_16BIT,
+		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
 				Rdata, len);
 		eepromExampleReadFlag = 0;
 	}
 }
 void IOExpenderInit() {
 	//Init All
-	//setting ตารางใน IOexpander เพื่อให้ใช้งานได้
+	//setting ตารางใน IOexpander เพื่อให้ใช้งานได้ sequencial write
 	//ขนาด 16 bit
 	//POR/RST = ค่า reset ตอนตัดไฟ ถ้าตัดไฟข้อมูลจะหายเลย
 	//สามารถอ่านเขียนได้อย่างไม่จำกัด
 	//IODIRA = 1 input GPIOA 0xFF
 	//IODIRB = 0 output GPIOB 0x00
 	//ที่เหลือ default 0x00
-	//GPPUA =1 pull up input แก้ปัญหาปล่อยลยเป็น high 0xFF ค่าจะได้ไม่สุ่ม
+	//GPPUA ช่อง 12 =1 pull up input แก้ปัญหาปล่อยลยเป็น high 0xFF ค่าจะได้ไม่สุ่ม
 	//olatb = 0x15 ตั้งไว้เป็น 0x00 ไฟจะติดทั้งหมด
 	static uint8_t Setting[0x16] = { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -342,6 +342,7 @@ void IOExpenderInit() {
 	//ถูกเรียกครั้งแรกตอนเปิด controller
 	//เวลากดปุ่ม reset = Nrst จะดึงขานี้ลง หลังจากนั้นจะ reset ค่าทั้งหมดในนี้
 	//address 8 bit
+	//ตำแหน่ง IODIRA = 0x00
 	HAL_I2C_Mem_Write(&hi2c1, IOEXPD_ADDR, 0x00, I2C_MEMADD_SIZE_8BIT, Setting,
 			0x16, 100);
 }
@@ -357,6 +358,7 @@ void IOExpenderReadPinA(uint8_t *Rdata) {
 	if (IOExpdrExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 		//read gpio A at 0x12
 		//เก็บใน Rdata
+		//ตำแหน่ง GPIOA = 0x12
 		HAL_I2C_Mem_Read_IT(&hi2c1, IOEXPD_ADDR, 0x12, I2C_MEMADD_SIZE_8BIT,
 				Rdata, 1);
 		IOExpdrExampleReadFlag =0;
