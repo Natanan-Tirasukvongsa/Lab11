@@ -1166,13 +1166,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) //Interrupt
  80009aa:	2b00      	cmp	r3, #0
  80009ac:	d10c      	bne.n	80009c8 <HAL_GPIO_EXTI_Callback+0x3c>
 		{
-			eepromExampleWriteFlag = 1;
+			eepromExampleWriteFlag = 0;
  80009ae:	4b0f      	ldr	r3, [pc, #60]	; (80009ec <HAL_GPIO_EXTI_Callback+0x60>)
- 80009b0:	2201      	movs	r2, #1
+ 80009b0:	2200      	movs	r2, #0
  80009b2:	701a      	strb	r2, [r3, #0]
-			eepromExampleReadFlag = 0;
+			eepromExampleReadFlag = 1;
  80009b4:	4b0e      	ldr	r3, [pc, #56]	; (80009f0 <HAL_GPIO_EXTI_Callback+0x64>)
- 80009b6:	2200      	movs	r2, #0
+ 80009b6:	2201      	movs	r2, #1
  80009b8:	701a      	strb	r2, [r3, #0]
 			IOExpdrExampleWriteFlag = 0;
  80009ba:	4b0e      	ldr	r3, [pc, #56]	; (80009f4 <HAL_GPIO_EXTI_Callback+0x68>)
@@ -1182,20 +1182,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) //Interrupt
  80009c0:	4b0d      	ldr	r3, [pc, #52]	; (80009f8 <HAL_GPIO_EXTI_Callback+0x6c>)
  80009c2:	2201      	movs	r2, #1
  80009c4:	701a      	strb	r2, [r3, #0]
-			eepromExampleWriteFlag = 0;
+			eepromExampleWriteFlag = 1;
 			IOExpdrExampleReadFlag = 0;
 			IOExpdrExampleWriteFlag = 1;
 		}
 	}
 }
  80009c6:	e00b      	b.n	80009e0 <HAL_GPIO_EXTI_Callback+0x54>
-			eepromExampleReadFlag = 1;
+			eepromExampleReadFlag = 0;
  80009c8:	4b09      	ldr	r3, [pc, #36]	; (80009f0 <HAL_GPIO_EXTI_Callback+0x64>)
- 80009ca:	2201      	movs	r2, #1
+ 80009ca:	2200      	movs	r2, #0
  80009cc:	701a      	strb	r2, [r3, #0]
-			eepromExampleWriteFlag = 0;
+			eepromExampleWriteFlag = 1;
  80009ce:	4b07      	ldr	r3, [pc, #28]	; (80009ec <HAL_GPIO_EXTI_Callback+0x60>)
- 80009d0:	2200      	movs	r2, #0
+ 80009d0:	2201      	movs	r2, #1
  80009d2:	701a      	strb	r2, [r3, #0]
 			IOExpdrExampleReadFlag = 0;
  80009d4:	4b08      	ldr	r3, [pc, #32]	; (80009f8 <HAL_GPIO_EXTI_Callback+0x6c>)

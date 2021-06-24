@@ -411,15 +411,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) //Interrupt
 	{
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) //falling
 		{
-			eepromExampleWriteFlag = 1;
-			eepromExampleReadFlag = 0;
+			eepromExampleWriteFlag = 0;
+			eepromExampleReadFlag = 1;
 			IOExpdrExampleWriteFlag = 0;
 			IOExpdrExampleReadFlag = 1;
 		}
 		else //rising
 		{
-			eepromExampleReadFlag = 1;
-			eepromExampleWriteFlag = 0;
+			eepromExampleReadFlag = 0;
+			eepromExampleWriteFlag = 1;
 			IOExpdrExampleReadFlag = 0;
 			IOExpdrExampleWriteFlag = 1;
 		}
