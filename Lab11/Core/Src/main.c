@@ -142,19 +142,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  IOExpenderReadPinA(&IOExpdrDataReadBack);
 	  led_read = IOExpdrDataReadBack<<4;
 	  IOExpdrDataWrite = led_read>>4;
-	  D_1 = (IOExpdrDataWrite&0b1000)>>3;
-	  D_2 = (IOExpdrDataWrite&0b0100)>>2;
-	  D_3 = (IOExpdrDataWrite&0b0010)>>1;
-	  D_4 = (IOExpdrDataWrite&0b0001);
-
-
+	  D_4 = (IOExpdrDataWrite&0b1000)>>3;
+	  D_3 = (IOExpdrDataWrite&0b0100)>>2;
+	  D_2 = (IOExpdrDataWrite&0b0010)>>1;
+	  D_1 = (IOExpdrDataWrite&0b0001);
+	  EEPROMWriteExample();
+	  IOExpenderWritePinB(IOExpdrDataWrite);
 	  	  	   //เ�?็บค่าใน  eepromDataReadBack
 	  EEPROMReadExample(eepromDataReadBack, 4);
-	  EEPROMWriteExample();
-	  IOExpenderReadPinA(&IOExpdrDataReadBack);
-	  IOExpenderWritePinB(IOExpdrDataWrite);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -312,7 +311,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 //�?ารเขียน eeprom
-
+static uint8_t data[4];
 void EEPROMWriteExample() {
 	//flag = 1 && I2C ready
 	if (eepromExampleWriteFlag && hi2c1.State == HAL_I2C_STATE_READY) {
@@ -320,29 +319,32 @@ void EEPROMWriteExample() {
 		//ข้อมูลที่จเขียนใน eeprom
 		//ข้อระวัง I2C ทำงาน �?บบ IT //ต้องมั่นใจว่า data ไม่เปลี่ยน�?ปลงไประหว่างที่เขียน
 		//ใส่ static เผื่อเ�?็บค่า หลังจา�?จบฟัง�?์ชันยังคงรั�?ษา data
-		static uint8_t data[4];
-		data[0] = D_4;
-		data[1] = D_3;
-		data[2] = D_2;
-		data[3] = D_1;
+
+		data[0] = D_1;
+		data[1] = D_2;
+		data[2] = D_3;
+		data[3] = D_4;
 		//write memory
 		//Memaddress = ตำ�?หน่งภายใน eeprom ที่ต้อง�?ารเขียน  0x20 //เลขที่ตัวเอง
 		//high & low byte = 16bits ตำ�?หน่งใน eeprom
-		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
+		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
 				data, 4);
 
-
+		//HAL_Delay(100);
 		//set flag = 0 //ทำงานครั้งเดียว
 		eepromExampleWriteFlag = 0;
+
 	}
 }
 void EEPROMReadExample(uint8_t *Rdata, uint16_t len) {
 	if (eepromExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 
 		//read
-		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
+		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
 				Rdata, len);
+		//HAL_Delay(100);
 		eepromExampleReadFlag = 0;
+
 	}
 }
 void IOExpenderInit() {
@@ -383,6 +385,7 @@ void IOExpenderReadPinA(uint8_t *Rdata) {
 		//ตำ�?หน่ง GPIOA = 0x12
 		HAL_I2C_Mem_Read_IT(&hi2c1, IOEXPD_ADDR, 0x12, I2C_MEMADD_SIZE_8BIT,
 				Rdata, 1);
+		//HAL_Delay(100);
 		IOExpdrExampleReadFlag =0;
 	}
 }
@@ -401,6 +404,7 @@ void IOExpenderWritePinB(uint8_t Wdata) {
 		//olatb = 0x15 output gpiob
 		HAL_I2C_Mem_Write_IT(&hi2c1, IOEXPD_ADDR, 0x15, I2C_MEMADD_SIZE_8BIT,
 				&data, 1);
+		//HAL_Delay(100);
 		IOExpdrExampleWriteFlag=0;
 	}
 }
@@ -411,17 +415,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) //Interrupt
 	{
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) //falling
 		{
-			eepromExampleWriteFlag = 0;
-			eepromExampleReadFlag = 1;
 			IOExpdrExampleWriteFlag = 0;
 			IOExpdrExampleReadFlag = 1;
+			eepromExampleWriteFlag = 1;
+			eepromExampleReadFlag = 0;
+
 		}
 		else //rising
 		{
-			eepromExampleReadFlag = 0;
-			eepromExampleWriteFlag = 1;
 			IOExpdrExampleReadFlag = 0;
 			IOExpdrExampleWriteFlag = 1;
+			eepromExampleReadFlag = 1;
+			eepromExampleWriteFlag = 0;
+
 		}
 	}
 }
