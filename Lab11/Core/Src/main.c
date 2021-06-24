@@ -143,14 +143,14 @@ int main(void)
   while (1)
   {
 	  IOExpenderReadPinA(&IOExpdrDataReadBack);
-	  led_read = IOExpdrDataReadBack<<4;
-	  IOExpdrDataWrite = led_read>>4;
-	  D_4 = (IOExpdrDataWrite&0b1000)>>3;
-	  D_3 = (IOExpdrDataWrite&0b0100)>>2;
-	  D_2 = (IOExpdrDataWrite&0b0010)>>1;
-	  D_1 = (IOExpdrDataWrite&0b0001);
+//	  led_read = IOExpdrDataReadBack<<4;
+//	  IOExpdrDataWrite = IOExpdrDataReadBack&0b00001111;
+	  D_4 = (IOExpdrDataReadBack&0b1000)>>3;
+	  D_3 = (IOExpdrDataReadBack&0b0100)>>2;
+	  D_2 = (IOExpdrDataReadBack&0b0010)>>1;
+	  D_1 = (IOExpdrDataReadBack&0b0001);
 	  EEPROMWriteExample();
-	  IOExpenderWritePinB(IOExpdrDataWrite);
+	  IOExpenderWritePinB(IOExpdrDataReadBack&0b1111);
 	  	  	   //เ�?็บค่าใน  eepromDataReadBack
 	  EEPROMReadExample(eepromDataReadBack, 4);
 
@@ -330,7 +330,7 @@ void EEPROMWriteExample() {
 		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
 				data, 4);
 
-		//HAL_Delay(100);
+		HAL_Delay(10);
 		//set flag = 0 //ทำงานครั้งเดียว
 		eepromExampleWriteFlag = 0;
 
@@ -342,7 +342,7 @@ void EEPROMReadExample(uint8_t *Rdata, uint16_t len) {
 		//read
 		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
 				Rdata, len);
-		//HAL_Delay(100);
+		HAL_Delay(10);
 		eepromExampleReadFlag = 0;
 
 	}
