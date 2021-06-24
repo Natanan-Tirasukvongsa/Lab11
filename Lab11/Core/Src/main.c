@@ -63,7 +63,13 @@ uint8_t IOExpdrExampleReadFlag = 0;
 
 uint8_t eepromDataReadBack[4];
 uint8_t IOExpdrDataReadBack;
-uint8_t IOExpdrDataWrite = 0b01010101; //ข้อมูลที่จะเขียนใน io expander ไฟจะติดสลับ
+uint8_t IOExpdrDataWrite = 0b1111; //ข้อมูลที่จะเขียนใน io expander ไฟจะติดสลับ
+
+uint8_t led_read = 0b0;
+uint8_t D_1 = 0;
+uint8_t D_2 = 0;
+uint8_t D_3 = 0;
+uint8_t D_4 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,13 +78,13 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-//ไม่ได้เรียกใช้บ่อย
-//EEProm เป็นอุปกรณ์เก็บข้อมูล เหมืนตารางอยู่ข้างใน
-//เป็นการเก็บข้อมูลแบบไม่หายไป ถึงแม้ถอดปลั๊ก controller
-//เก็บข้อมูลไม่ใช้ไฟได้ แต่มีจำกัดจำนวนครั้งที่เขียนได้
-//ถ้าเขียนเกินจำนวนครั้งที่เขียนไว้ต่อ 1 cell , cell จะเสื่อม ทำให้ไม่เรียกใช้บ่อย
-//ใช้เขียนเฉพาะจำเป็น แต่อ่านได้เรื่อย ๆ
-//มีประโยชน์ในการเก็บข้อมูล setting
+//ไม่ได้เรีย�?ใช้บ่อย
+//EEProm เป็นอุป�?รณ์เ�?็บข้อมูล เหมืนตารางอยู่ข้างใน
+//เป็น�?ารเ�?็บข้อมูล�?บบไม่หายไป ถึง�?ม้ถอดปลั๊�? controller
+//เ�?็บข้อมูลไม่ใช้ไฟได้ �?ต่มีจำ�?ัดจำนวนครั้งที่เขียนได้
+//ถ้าเขียนเ�?ินจำนวนครั้งที่เขียนไว้ต่อ 1 cell , cell จะเสื่อม ทำให้ไม่เรีย�?ใช้บ่อย
+//ใช้เขียนเฉพาะจำเป็น �?ต่อ่านได้เรื่อย ๆ
+//มีประโยชน์ใน�?ารเ�?็บข้อมูล setting
 void EEPROMWriteExample();
 void EEPROMReadExample(uint8_t *Rdata, uint16_t len);
 //เพิ่ม port gpio
@@ -86,6 +92,7 @@ void EEPROMReadExample(uint8_t *Rdata, uint16_t len);
 void IOExpenderInit();
 void IOExpenderReadPinA(uint8_t *Rdata);
 void IOExpenderWritePinB(uint8_t Wdata);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -124,8 +131,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  //delay ตอนเริ่มเนื่องจาก ioexpender restart ไปพร้อมๆกับเวลาที่กด reset
-  //ใช้เวลาเล็กน้อยในการ ตั้งค่าตัดเอง
+  //delay ตอนเริ่มเนื่องจา�? ioexpender restart ไปพร้อมๆ�?ับเวลาที่�?ด reset
+  //ใช้เวลาเล็�?น้อยใน�?าร ตั้งค่าตัดเอง
   HAL_Delay(100);
   //initial
   IOExpenderInit();
@@ -135,12 +142,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  EEPROMWriteExample();
-	  //เก็บค่าใน  eepromDataReadBack
-	  		EEPROMReadExample(eepromDataReadBack, 4);
+	  led_read = IOExpdrDataReadBack<<4;
+	  IOExpdrDataWrite = led_read>>4;
+	  D_1 = (IOExpdrDataWrite&0b1000)>>3;
+	  D_2 = (IOExpdrDataWrite&0b0100)>>2;
+	  D_3 = (IOExpdrDataWrite&0b0010)>>1;
+	  D_4 = (IOExpdrDataWrite&0b0001);
 
-	  		IOExpenderReadPinA(&IOExpdrDataReadBack);
-	  		IOExpenderWritePinB(IOExpdrDataWrite);
+
+	  	  	   //เ�?็บค่าใน  eepromDataReadBack
+	  EEPROMReadExample(eepromDataReadBack, 4);
+	  EEPROMWriteExample();
+	  IOExpenderReadPinA(&IOExpdrDataReadBack);
+	  IOExpenderWritePinB(IOExpdrDataWrite);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -279,8 +293,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LD2_Pin */
@@ -290,23 +304,31 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
-//การเขียน eeprom
+//�?ารเขียน eeprom
+
 void EEPROMWriteExample() {
 	//flag = 1 && I2C ready
 	if (eepromExampleWriteFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 
 		//ข้อมูลที่จเขียนใน eeprom
-		//ข้อระวัง I2C ทำงาน แบบ IT //ต้องมั่นใจว่า data ไม่เปลี่ยนแปลงไประหว่างที่เขียน
-		//ใส่ static เผื่อเก็บค่า หลังจากจบฟังก์ชันยังคงรักษา data
-		static uint8_t data[4] = { 0xff, 0x00, 0x55, 0xaa };
-
+		//ข้อระวัง I2C ทำงาน �?บบ IT //ต้องมั่นใจว่า data ไม่เปลี่ยน�?ปลงไประหว่างที่เขียน
+		//ใส่ static เผื่อเ�?็บค่า หลังจา�?จบฟัง�?์ชันยังคงรั�?ษา data
+		static uint8_t data[4];
+		data[0] = D_4;
+		data[1] = D_3;
+		data[2] = D_2;
+		data[3] = D_1;
 		//write memory
-		//Memaddress = ตำแหน่งภายใน eeprom ที่ต้องการเขียน  0x20 //เลขที่ตัวเอง
-		//high & low byte = 16bits ตำแหน่งใน eeprom
-		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
+		//Memaddress = ตำ�?หน่งภายใน eeprom ที่ต้อง�?ารเขียน  0x20 //เลขที่ตัวเอง
+		//high & low byte = 16bits ตำ�?หน่งใน eeprom
+		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
 				data, 4);
 
 
@@ -318,7 +340,7 @@ void EEPROMReadExample(uint8_t *Rdata, uint16_t len) {
 	if (eepromExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 
 		//read
-		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
+		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
 				Rdata, len);
 		eepromExampleReadFlag = 0;
 	}
@@ -328,58 +350,79 @@ void IOExpenderInit() {
 	//setting ตารางใน IOexpander เพื่อให้ใช้งานได้ sequencial write
 	//ขนาด 16 bit
 	//POR/RST = ค่า reset ตอนตัดไฟ ถ้าตัดไฟข้อมูลจะหายเลย
-	//สามารถอ่านเขียนได้อย่างไม่จำกัด
+	//สามารถอ่านเขียนได้อย่างไม่จำ�?ัด
 	//IODIRA = 1 input GPIOA 0xFF
 	//IODIRB = 0 output GPIOB 0x00
 	//ที่เหลือ default 0x00
-	//GPPUA ช่อง 12 =1 pull up input แก้ปัญหาปล่อยลยเป็น high 0xFF ค่าจะได้ไม่สุ่ม
+	//GPPUA ช่อง 12 =1 pull up input �?�?้ปั�?หาปล่อยลยเป็น high 0xFF ค่าจะได้ไม่สุ่ม
 	//olatb = 0x15 ตั้งไว้เป็น 0x00 ไฟจะติดทั้งหมด
 	static uint8_t Setting[0x16] = { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00 };
 	//polling
-	//อยู่ในรูปแบบ initial write
-	//ถูกเรียกครั้งแรกตอนเปิด controller
-	//เวลากดปุ่ม reset = Nrst จะดึงขานี้ลง หลังจากนั้นจะ reset ค่าทั้งหมดในนี้
+	//อยู่ในรูป�?บบ initial write
+	//ถู�?เรีย�?ครั้ง�?ร�?ตอนเปิด controller
+	//เวลา�?ดปุ่ม reset = Nrst จะดึงขานี้ลง หลังจา�?นั้นจะ reset ค่าทั้งหมดในนี้
 	//address 8 bit
-	//ตำแหน่ง IODIRA = 0x00
+	//ตำ�?หน่ง IODIRA = 0x00
 	HAL_I2C_Mem_Write(&hi2c1, IOEXPD_ADDR, 0x00, I2C_MEMADD_SIZE_8BIT, Setting,
 			0x16, 100);
 }
-//master recive & master transmit เป็นการอ่านเขียนปกติ ใน project modlu3
-//master seq recive, master seq rans,it เป็นการตุมจังหวะรับส่ง
+//master recive & master transmit เป็น�?ารอ่านเขียนป�?ติ ใน project modlu3
+//master seq recive, master seq rans,it เป็น�?ารตุมจังหวะรับส่ง
 
-//ข้อมูลที่อ่านเขียนสามารถเก็บค่า และ แสดงการทำงาน ควบคุม  Gpio แต่ละช่อง
-//IOIDR กำหนด output แต่ละช่อง
-//gpio = reflec logic level ของแต่ลช่อง
-//การเขียนข้อมูลใน emory ของ IOexpender แต่ memory ไปควบคุมการทำงานต่าง ๆ ใน IOExpender
+//ข้อมูลที่อ่านเขียนสามารถเ�?็บค่า �?ละ �?สดง�?ารทำงาน ควบคุม  Gpio �?ต่ละช่อง
+//IOIDR �?ำหนด output �?ต่ละช่อง
+//gpio = reflec logic level ของ�?ต่ลช่อง
+//�?ารเขียนข้อมูลใน emory ของ IOexpender �?ต่ memory ไปควบคุม�?ารทำงานต่าง ๆ ใน IOExpender
 //ทำงานเหมือน eeprom
 void IOExpenderReadPinA(uint8_t *Rdata) {
 	if (IOExpdrExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 		//read gpio A at 0x12
-		//เก็บใน Rdata
-		//ตำแหน่ง GPIOA = 0x12
+		//เ�?็บใน Rdata
+		//ตำ�?หน่ง GPIOA = 0x12
 		HAL_I2C_Mem_Read_IT(&hi2c1, IOEXPD_ADDR, 0x12, I2C_MEMADD_SIZE_8BIT,
 				Rdata, 1);
 		IOExpdrExampleReadFlag =0;
 	}
 }
 
-//olat  = กำหนด output high low
+//olat  = �?ำหนด output high low
 //16 bits = Bank 0
 //output high ไฟไม่ติด
 void IOExpenderWritePinB(uint8_t Wdata) {
 	if (IOExpdrExampleWriteFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 		//สร้าง data ตัวใหม่
 		static uint8_t data;
-		//ป้องกันการแก้ไขข้อมูลใน wdata เมื่อ ข้อมูลใน i2c ยังส่งไม่เสร็จ ข้อมูลจะยังไม่ถูกแก้ไข
-		data = Wdata; //เปลี่ยนแปลงค่าของตัวนี้ได้เรื่อย ๆ
+		//ป้อง�?ัน�?าร�?�?้ไขข้อมูลใน wdata เมื่อ ข้อมูลใน i2c ยังส่งไม่เสร็จ ข้อมูลจะยังไม่ถู�?�?�?้ไข
+		data = Wdata; //เปลี่ยน�?ปลงค่าของตัวนี้ได้เรื่อย ๆ
 		//write memory
-		//เขียนลงใน output GPIOB แต่ไม่ได้เขียนลง GPIOB โดยตรง โดยจะเขียนลงใน OLATB
+		//เขียนลงใน output GPIOB �?ต่ไม่ได้เขียนลง GPIOB โดยตรง โดยจะเขียนลงใน OLATB
 		//olatb = 0x15 output gpiob
 		HAL_I2C_Mem_Write_IT(&hi2c1, IOEXPD_ADDR, 0x15, I2C_MEMADD_SIZE_8BIT,
 				&data, 1);
 		IOExpdrExampleWriteFlag=0;
+	}
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) //Interrupt
+{
+	if (GPIO_Pin == GPIO_PIN_13 )
+	{
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) //falling
+		{
+			eepromExampleWriteFlag = 1;
+			eepromExampleReadFlag = 0;
+			IOExpdrExampleWriteFlag = 0;
+			IOExpdrExampleReadFlag = 1;
+		}
+		else //rising
+		{
+			eepromExampleReadFlag = 1;
+			eepromExampleWriteFlag = 0;
+			IOExpdrExampleReadFlag = 0;
+			IOExpdrExampleWriteFlag = 1;
+		}
 	}
 }
 /* USER CODE END 4 */
