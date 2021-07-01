@@ -70,6 +70,9 @@ uint8_t D_1 = 0;
 uint8_t D_2 = 0;
 uint8_t D_3 = 0;
 uint8_t D_4 = 0;
+
+GPIO_PinState button[2] = {0};
+uint8_t press = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -142,17 +145,40 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  button[0]= HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+
+
+	  if(button[1]==GPIO_PIN_SET
+	  	  	&& button[0]==GPIO_PIN_RESET && press ==0) //if press button
+	  {
+		  IOExpdrExampleWriteFlag = 0;
+		  IOExpdrExampleReadFlag = 1;
+		  eepromExampleWriteFlag = 1;
+		  eepromExampleReadFlag = 0;
+		  press = 1;
+	  }
+
+	  if(button[1]==GPIO_PIN_RESET
+	  	  	  	&& button[0]==GPIO_PIN_SET && press ==1) //if press button
+	  	  {
+	  		  IOExpdrExampleWriteFlag = 1;
+	  		  IOExpdrExampleReadFlag = 0;
+	  		  eepromExampleWriteFlag = 0;
+	  		  eepromExampleReadFlag = 1;
+	  		  press = 0;
+	  	  }
 	  IOExpenderReadPinA(&IOExpdrDataReadBack);
-//	  led_read = IOExpdrDataReadBack<<4;
-//	  IOExpdrDataWrite = IOExpdrDataReadBack&0b00001111;
-	  D_4 = (IOExpdrDataReadBack&0b1000)>>3;
-	  D_3 = (IOExpdrDataReadBack&0b0100)>>2;
-	  D_2 = (IOExpdrDataReadBack&0b0010)>>1;
-	  D_1 = (IOExpdrDataReadBack&0b0001);
-	  EEPROMWriteExample();
-	  IOExpenderWritePinB(IOExpdrDataReadBack&0b1111);
-	  	  	   //เ�?็บค่าใน  eepromDataReadBack
-	  EEPROMReadExample(eepromDataReadBack, 4);
+	 //	  led_read = IOExpdrDataReadBack<<4;
+	 //	  IOExpdrDataWrite = IOExpdrDataReadBack&0b00001111;
+	 	  D_4 = (IOExpdrDataReadBack&0b1000)>>3;
+	 	  D_3 = (IOExpdrDataReadBack&0b0100)>>2;
+	 	  D_2 = (IOExpdrDataReadBack&0b0010)>>1;
+	 	  D_1 = (IOExpdrDataReadBack&0b0001);
+	 	  EEPROMWriteExample();
+	 	  IOExpenderWritePinB(IOExpdrDataReadBack&0b1111);
+	 	  	  	   //เ�?็บค่าใน  eepromDataReadBack
+	 	  EEPROMReadExample(eepromDataReadBack, 4);
+	  button[1] = button[0];
 
     /* USER CODE END WHILE */
 
@@ -409,28 +435,30 @@ void IOExpenderWritePinB(uint8_t Wdata) {
 	}
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) //Interrupt
-{
-	if (GPIO_Pin == GPIO_PIN_13 )
-	{
-		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) //falling
-		{
-			IOExpdrExampleWriteFlag = 0;
-			IOExpdrExampleReadFlag = 1;
-			eepromExampleWriteFlag = 1;
-			eepromExampleReadFlag = 0;
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) //Interrupt
+//{
+//	if (GPIO_Pin == GPIO_PIN_13 )
+//	{
+//		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) //falling
+//		{
+//			State_button = 0;
+//			IOExpdrExampleWriteFlag = 0;
+//			IOExpdrExampleReadFlag = 1;
+//			eepromExampleWriteFlag = 1;
+//			eepromExampleReadFlag = 0;
 
-		}
-		else //rising
-		{
-			IOExpdrExampleReadFlag = 0;
-			IOExpdrExampleWriteFlag = 1;
-			eepromExampleReadFlag = 1;
-			eepromExampleWriteFlag = 0;
-
-		}
-	}
-}
+//		}
+//		else //rising
+//		{
+//			State_button = 1;
+//			IOExpdrExampleReadFlag = 0;
+//			IOExpdrExampleWriteFlag = 1;
+//			eepromExampleReadFlag = 1;
+//			eepromExampleWriteFlag = 0;
+//
+//		}
+//	}
+//}
 /* USER CODE END 4 */
 
 /**
