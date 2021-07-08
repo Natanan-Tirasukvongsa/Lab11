@@ -145,6 +145,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_I2C_Master_Transmit(&hi2c1, (0x23<<1),(uint8_t*)0x45 , 1, 200);
+
 	  button[0]= HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
 
 
