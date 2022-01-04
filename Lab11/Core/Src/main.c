@@ -145,7 +145,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_I2C_Master_Transmit(&hi2c1, (0x23<<1),(uint8_t*)0x45 , 1, 200);
+	  HAL_I2C_Master_Transmit(&hi2c1, (0x23<<1),(uint8_t*)0x45 , 8, 100);
 
 	  button[0]= HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
 
@@ -172,14 +172,15 @@ int main(void)
 	  IOExpenderReadPinA(&IOExpdrDataReadBack);
 	 //	  led_read = IOExpdrDataReadBack<<4;
 	 //	  IOExpdrDataWrite = IOExpdrDataReadBack&0b00001111;
-	 	  D_4 = (IOExpdrDataReadBack&0b1000)>>3;
-	 	  D_3 = (IOExpdrDataReadBack&0b0100)>>2;
-	 	  D_2 = (IOExpdrDataReadBack&0b0010)>>1;
-	 	  D_1 = (IOExpdrDataReadBack&0b0001);
+//	 	  D_4 = (IOExpdrDataReadBack&0b1000)>>3;
+//	 	  D_3 = (IOExpdrDataReadBack&0b0100)>>2;
+//	 	  D_2 = (IOExpdrDataReadBack&0b0010)>>1;
+//	 	  D_1 = (IOExpdrDataReadBack&0b0001);
 	 	  EEPROMWriteExample();
-	 	  IOExpenderWritePinB(IOExpdrDataReadBack&0b1111);
+
 	 	  	  	   //เ�?็บค่าใน  eepromDataReadBack
 	 	  EEPROMReadExample(eepromDataReadBack, 4);
+	 	 IOExpenderWritePinB(eepromDataReadBack[0]);
 	  button[1] = button[0];
 
     /* USER CODE END WHILE */
@@ -339,7 +340,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 //�?ารเขียน eeprom
-static uint8_t data[4];
+
 void EEPROMWriteExample() {
 	//flag = 1 && I2C ready
 	if (eepromExampleWriteFlag && hi2c1.State == HAL_I2C_STATE_READY) {
@@ -347,16 +348,17 @@ void EEPROMWriteExample() {
 		//ข้อมูลที่จเขียนใน eeprom
 		//ข้อระวัง I2C ทำงาน �?บบ IT //ต้องมั่นใจว่า data ไม่เปลี่ยน�?ปลงไประหว่างที่เขียน
 		//ใส่ static เผื่อเ�?็บค่า หลังจา�?จบฟัง�?์ชันยังคงรั�?ษา data
-
-		data[0] = D_1;
-		data[1] = D_2;
-		data[2] = D_3;
-		data[3] = D_4;
+		static uint8_t data[1];
+		data[0] = IOExpdrDataReadBack&0b00001111;
+//		data[0] = D_1;
+//		data[1] = D_2;
+//		data[2] = D_3;
+//		data[3] = D_4;
 		//write memory
 		//Memaddress = ตำ�?หน่งภายใน eeprom ที่ต้อง�?ารเขียน  0x20 //เลขที่ตัวเอง
 		//high & low byte = 16bits ตำ�?หน่งใน eeprom
 		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x20, I2C_MEMADD_SIZE_16BIT,
-				data, 4);
+				data, 1);
 
 		HAL_Delay(10);
 		//set flag = 0 //ทำงานครั้งเดียว
@@ -372,7 +374,6 @@ void EEPROMReadExample(uint8_t *Rdata, uint16_t len) {
 				Rdata, len);
 		HAL_Delay(10);
 		eepromExampleReadFlag = 0;
-
 	}
 }
 void IOExpenderInit() {
